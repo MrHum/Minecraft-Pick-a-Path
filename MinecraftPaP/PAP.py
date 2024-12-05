@@ -1,5 +1,6 @@
 import pygame
 import sys
+import tkinter as tk
 
 pygame.init()
 
@@ -18,11 +19,11 @@ scenes = {
         "description": "You see a lit-up cave and a pitch-black cave. Where do you go?",
         "choices": {
             "Go to the lit-up cave": "game_over1",
-            "Go into the dark cave": "Dark_Cave"
+            "Go into the dark cave": "Dark_Cave2"
         },
         "image": None
     },
-    "Dark_Cave": {
+    "Dark_Cave2": {
         "description": "You bravely go through the dark cave and find a light source. Now you find another dark cave above.",
         "choices": {
             "Go up into another dark cave": "game_over2",
@@ -71,96 +72,63 @@ selected_choice = None
 show_play_again_button = False
 end_scene_start_time = 0
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-BLUE = (100, 100, 255)
-GREEN = (100, 255, 100)
+def start_game():
+    global current_scene
+    current_scene = "start"
+    root.quit()
 
-def draw_text_wrapped(text, x, y, width, font, color):
-    words = text.split(' ')
-    lines = []
-    current_line = ""
+root = tk.Tk()
+root.title("Minecraft Pick-A-Path")
+root.geometry("300x200")
 
-    for word in words:
-        test_line = f"{current_line} {word}".strip()
-        if font.size(test_line)[0] > width:
-            lines.append(current_line)
-            current_line = word
-        else:
-            current_line = test_line
+intro_label = tk.Label(root, text=scenes["instructions"]["description"], wraplength=280, font=("Helvetica", 12))
+intro_label.pack(pady=20)
 
-    lines.append(current_line)
+start_button = tk.Button(root, text="Start Game", command=start_game)
+start_button.pack(pady=10)
 
-    for line in lines:
-        rendered_text = font.render(line, True, color)
-        screen.blit(rendered_text, (x, y))
-        y += font.get_linesize()
-
-def draw_choices(choices):
-    global selected_choice
-    y_offset = 300 
-    for i, (choice_text, next_scene) in enumerate(choices.items()):
-        radio_x, radio_y = 50, y_offset
-        pygame.draw.circle(screen, BLUE, (radio_x, radio_y), 15, 2)
-        if selected_choice == next_scene:
-            pygame.draw.circle(screen, BLUE, (radio_x, radio_y), 10)
-
-        choice_surface = font.render(choice_text, True, WHITE)
-        screen.blit(choice_surface, (radio_x + 30, y_offset - 10))
-
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if pygame.mouse.get_pressed()[0]:
-            if (mouse_x - radio_x) ** 2 + (mouse_y - radio_y) ** 2 < 15 ** 2:
-                selected_choice = next_scene
-
-        y_offset += 50
-
-def go_to_next_scene():
-    global current_scene, selected_choice, show_play_again_button, end_scene_start_time
-    if selected_choice:
-        current_scene = selected_choice
-        selected_choice = None
-        show_play_again_button = False
-        if current_scene in ["win", "game_over1", "game_over2", "game_over4"]:
-            end_scene_start_time = pygame.time.get_ticks()
+root.mainloop()
 
 running = True
+
 while running:
-    screen.fill(BLACK)
+    screen.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-    draw_text_wrapped(scenes[current_scene]["description"], 20, 50, 1040, font, WHITE)
+            
+    description_text = scenes[current_scene]["description"]
+    y_offset = 50
+    for line in description_text.split('\n'):
+        rendered_text = font.render(line, True, (255, 255, 255))
+        screen.blit(rendered_text, (20, y_offset))
+        y_offset += font.get_linesize()
 
     if current_scene not in ["game_over1", "game_over2", "game_over4", "win"]:
-        draw_choices(scenes[current_scene]["choices"])
-
-        continue_rect = pygame.Rect(450, 650, 200, 50)
-        pygame.draw.rect(screen, GREEN, continue_rect)
-        continue_text = font.render("Continue", True, BLACK)
-        screen.blit(continue_text, (475, 660))
-
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if continue_rect.collidepoint(mouse_x, mouse_y):
-            if pygame.mouse.get_pressed()[0]:
-                go_to_next_scene()
-    else:
-        if pygame.time.get_ticks() - end_scene_start_time > 3000:
-            show_play_again_button = True
-
-        if show_play_again_button:
-            play_again_rect = pygame.Rect(450, 650, 200, 50)
-            pygame.draw.rect(screen, GREEN, play_again_rect)
-            play_again_text = font.render("Play Again?", True, BLACK)
-            screen.blit(play_again_text, (465, 660))
+        y_offset = 300
+        for choice_text, next_scene in scenes[current_scene]["choices"].items():
+            pygame.draw.circle(screen, (100, 100, 255), (50, y_offset), 15, 2)
+            choice_surface = font.render(choice_text, True, (255, 255, 255))
+            screen.blit(choice_surface, (80, y_offset - 10))
 
             mouse_x, mouse_y = pygame.mouse.get_pos()
-            if play_again_rect.collidepoint(mouse_x, mouse_y):
-                if pygame.mouse.get_pressed()[0]:
-                    current_scene = "instructions"
-                    show_play_again_button = False
+            if pygame.mouse.get_pressed()[0]:
+                if (mouse_x - 50) ** 2 + (mouse_y - y_offset) ** 2 < 15 ** 2:
+                    current_scene = next_scene
+
+            y_offset += 50
+    
+    if current_scene in ["game_over1", "game_over2", "game_over3", "game_over4", "win"]:
+        play_again_rect = pygame.Rect(450, 650, 200, 50)
+        pygame.draw.rect(screen, (100, 255, 100), play_again_rect)
+        play_again_text = font.render("Play Again?", True, (0, 0, 0))
+        screen.blit(play_again_text, (465, 660))
+
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if play_again_rect.collidepoint(mouse_x, mouse_y):
+            if pygame.mouse.get_pressed()[0]:
+                current_scene = "start"
 
     pygame.display.flip()
 
