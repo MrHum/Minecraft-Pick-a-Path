@@ -1,57 +1,168 @@
-import tkinter as tk 
-MCPAP = tk.TK()
-MCPAP.geometry("800 x 720") 
-TitleIMG = tk.
-TitleLabel = tk.label(MCPAP, text="Minecraft Pick-A-Path")
-TitleLabel.pack()
+import pygame
+import sys
 
-StartB = tk.button(MCPAP, text="Press to Start")
-StartB.pack()
+pygame.init()
 
-P1Label = tk.label(MCPAP, text="You entered a cave you haven't explored before\nThere are two paths awaiting you\nDo you go left or right?")
-P1Label.pack()
+screen = pygame.display.set_mode((1080, 720))
+pygame.display.set_caption("Minecraft Pick-A-Path")
 
-Def P1B1Click():
-  print("You take 10 steps into the left path, you don’t pay attention and end up falling into lava.\nNice one.")
+font = pygame.font.Font(None, 36)
 
-P1B1 = tk.button(MCPAP, text="Go into the left", command=P1B1Click)
-P1B1.pack()
+scenes = {
+    "instructions": {
+        "description": "Welcome to Minecraft Pick-A-Path! Choose your path wisely. Each choice leads to a unique outcome. Survive and find the diamonds! Click 'Start Game' to begin.",
+        "choices": {"Start Game": "start"},
+        "image": None
+    },
+    "start": {
+        "description": "You see a lit-up cave and a pitch-black cave. Where do you go?",
+        "choices": {
+            "Go to the lit-up cave": "game_over1",
+            "Go into the dark cave": "Dark_Cave"
+        },
+        "image": None
+    },
+    "Dark_Cave": {
+        "description": "You bravely go through the dark cave and find a light source. Now you find another dark cave above.",
+        "choices": {
+            "Go up into another dark cave": "game_over2",
+            "Continue regular path": "Diamonds"
+        },
+        "image": None
+    },
+    "Diamonds": {
+        "description": "You continued your path and found diamonds, but they are guarded by two skeletons and zombies. What will you do?",
+        "choices": {
+            "Fight the mobs with a damaged sword": "game_over3",
+            "Fight the mobs with an axe you remembered": "win",
+            "Wait out the mobs": "game_over4"
+        },
+        "image": None
+    },
+    "game_over1": {
+        "description": "Game Over! The light came from lava and you fell before you realized. Great environmental awareness.",
+        "choices": {},
+        "image": None
+    },
+    "game_over2": {
+        "description": "Game Over! You were ambushed by mobs. Take a torch next time.",
+        "choices": {},
+        "image": None
+    },
+    "game_over3": {
+        "description": "Game Over! You forgot that the sword was badly damaged, it broke, and now the mobs counter-attack. Great job.",
+        "choices": {},
+        "image": None
+    },
+    "game_over4": {
+        "description": "Game Over! You waited too long, and a creeper snuck up on you. Boom!",
+        "choices": {},
+        "image": None
+    },
+    "win": {
+        "description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds. You won!",
+        "choices": {},
+        "image": None
+    }
+}
 
-Def P1B2Click():
-  print( "You enter the right path and end up bumping into some light from lava far ahead.\nYou see that there are again 2 paths, up or down next to a patch of lava illuminating the area.")	
+current_scene = "instructions"
+selected_choice = None
+show_play_again_button = False
+end_scene_start_time = 0
 
-P1B2 = tk.button(MCPAP, text="Go into the right", command=P1B2Click)
-P1B2.pack()
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (100, 100, 255)
+GREEN = (100, 255, 100)
 
-Def P2B1Click(): 
-  print("You decide to move upwards and don’t see any mobs.\nYou end up moving more forward and you see a skeleton by itself.\nThey catch you off guard and kill you, it happens")
+def draw_text_wrapped(text, x, y, width, font, color):
+    words = text.split(' ')
+    lines = []
+    current_line = ""
 
-P2B1 = tk.button(MCPAP, text="Go up", command=P2B1Click)
-P2B1.pack()
+    for word in words:
+        test_line = f"{current_line} {word}".strip()
+        if font.size(test_line)[0] > width:
+            lines.append(current_line)
+            current_line = word
+        else:
+            current_line = test_line
 
-Def P2B2Click():
-  print("You decide to move downwards and you see an Enderman.\nKnowing what they do you avoid eye contact, something you’re probably used to.\nYou see diamonds nearby guarded by 3 skeletons and 2 zombies.")
+    lines.append(current_line)
 
-P2B2 = tk.button(MCPAP, text="Go down", command=P2B2Click)
+    for line in lines:
+        rendered_text = font.render(line, True, color)
+        screen.blit(rendered_text, (x, y))
+        y += font.get_linesize()
 
-Def P3B1Click():
-  print("You pull out your sword from muscle memory and you don’t take damage while dispatching the zombies.\nBy the time you move onto the skeletons your sword breaks, and you end up panicking.\nThe skeletons 2 shot you.\nPay more attention...")
+def draw_choices(choices):
+    global selected_choice
+    y_offset = 300 
+    for i, (choice_text, next_scene) in enumerate(choices.items()):
+        radio_x, radio_y = 50, y_offset
+        pygame.draw.circle(screen, BLUE, (radio_x, radio_y), 15, 2)
+        if selected_choice == next_scene:
+            pygame.draw.circle(screen, BLUE, (radio_x, radio_y), 10)
 
-P3B1 = tk.button(MCPAP, text="Fight (Sword)", command=P3B1Click)
+        choice_surface = font.render(choice_text, True, WHITE)
+        screen.blit(choice_surface, (radio_x + 30, y_offset - 10))
 
-Def P3B2Click():
-  print("You decide to try waiting for the mobs to leave to save some materials and tools.\nYou wait for around 2 minutes when you suddenly hear hissing.\nThere’s a creeper behind you and it explodes you.\nNice social awareness you have...")
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if pygame.mouse.get_pressed()[0]:
+            if (mouse_x - radio_x) ** 2 + (mouse_y - radio_y) ** 2 < 15 ** 2:
+                selected_choice = next_scene
 
-P3B2 = tk.button(MCPAP, text="Wait It Out", command=P3B2Click)
+        y_offset += 50
 
-Def P3B3Click():
-  print("You pull out your Axe from your real inventory because your sword is on low durability.\nYou end up sweeping all the mobs with 2 hearts left.")
+def go_to_next_scene():
+    global current_scene, selected_choice, show_play_again_button, end_scene_start_time
+    if selected_choice:
+        current_scene = selected_choice
+        selected_choice = None
+        show_play_again_button = False
+        if current_scene in ["win", "game_over1", "game_over2", "game_over4"]:
+            end_scene_start_time = pygame.time.get_ticks()
 
-P3B3 = tk.button(MCPAP, text="Fight (Axe)", command=P3B3Click)
+running = True
+while running:
+    screen.fill(BLACK)
 
-Def P4BClick():
-  print("You quickly create an iron pickaxe from materials left over from your save.\nYou end up mining 2 diamonds.\nYou end up going home, not empty handed.\nGood job.")
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-P4B = tk.button(MCPAP, text="Mine Diamonds", command=P4BClick)
+    draw_text_wrapped(scenes[current_scene]["description"], 20, 50, 1040, font, WHITE)
 
-MCPAP.mainloop()
+    if current_scene not in ["game_over1", "game_over2", "game_over4", "win"]:
+        draw_choices(scenes[current_scene]["choices"])
+
+        continue_rect = pygame.Rect(450, 650, 200, 50)
+        pygame.draw.rect(screen, GREEN, continue_rect)
+        continue_text = font.render("Continue", True, BLACK)
+        screen.blit(continue_text, (475, 660))
+
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if continue_rect.collidepoint(mouse_x, mouse_y):
+            if pygame.mouse.get_pressed()[0]:
+                go_to_next_scene()
+    else:
+        if pygame.time.get_ticks() - end_scene_start_time > 3000:
+            show_play_again_button = True
+
+        if show_play_again_button:
+            play_again_rect = pygame.Rect(450, 650, 200, 50)
+            pygame.draw.rect(screen, GREEN, play_again_rect)
+            play_again_text = font.render("Play Again?", True, BLACK)
+            screen.blit(play_again_text, (465, 660))
+
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if play_again_rect.collidepoint(mouse_x, mouse_y):
+                if pygame.mouse.get_pressed()[0]:
+                    current_scene = "instructions"
+                    show_play_again_button = False
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
