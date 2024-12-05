@@ -9,68 +9,54 @@ pygame.display.set_caption("Minecraft Pick-A-Path")
 
 font = pygame.font.Font(None, 36)
 
+images = {
+    "instructions": pygame.image.load("images/Introduction.png"),
+    "start": pygame.image.load("images/choice1.png"),
+    "game_over1": pygame.image.load("images/gameover1.png"),
+    "Dark_Cave2": pygame.image.load("images/choice2.png"),
+    "game_over2": pygame.image.load("images/gameover2.png"),
+    "Diamonds": pygame.image.load("images/choice3.png"),
+    "game_over3": pygame.image.load("images/gameover3.png"),
+    "game_over4": pygame.image.load("images/gameover4.png"),
+    "win2": pygame.image.load("images/win1.png")
+}
+
 scenes = {
     "instructions": {
         "description": "Welcome to Minecraft Pick-A-Path! Choose your path wisely. Each choice leads to a unique outcome. Survive and find the diamonds! Click 'Start Game' to begin.",
-        "choices": {"Start Game": "start"},
-        "image": pygame.image.load("images/intrduction.png")
+        "choices": {"Start Game": "start"}
     },
     "start": {
         "description": "You see a lit-up cave and a pitch-black cave. Where do you go?",
         "choices": {
             "Go to the lit-up cave": "game_over1",
             "Go into the dark cave": "Dark_Cave2"
-        },
-        "image": pygame.image.load("images/choice1.png")
+        }
     },
     "Dark_Cave2": {
         "description": "You bravely go through the dark cave and find a light source. Now you find another dark cave above.",
         "choices": {
             "Go up into another dark cave": "game_over2",
             "Continue regular path": "Diamonds"
-        },
-        "image": pygame.image.load("images/choice2.png")
+        }
     },
     "Diamonds": {
         "description": "You continued your path and found diamonds, but they are guarded by two skeletons and zombies. What will you do?",
         "choices": {
             "Fight the mobs with a damaged sword": "game_over3",
-            "Fight the mobs with an axe you remembered": "win",
-            "Wait out the mobs": "game_over4"
-        },
-        "image": pygame.image.load("images/choice3.png")
+            "Fight the mobs with an axe you remembered": "win2",
+            "Wait for the mobs to disappear": "game_over4"
+        }
     },
-    "game_over1": {
-        "description": "Game Over! The light came from lava and you fell before you realized.\n Great environmental awareness.",
-        "choices": {},
-        "image": pygame.image.load("images/gameover1.png")
-    },
-    "game_over2": {
-        "description": "Game Over! You were ambushed by mobs. Take a torch next time.",
-        "choices": {},
-        "image": pygame.image.load("images/gameover2.png")
-    },
-    "game_over3": {
-        "description": "Game Over! You forgot that the sword was badly damaged, it broke, and now the mobs counter-attack. Great job.",
-        "choices": {},
-        "image": pygame.image.load("images/gameover3.png")
-    },
-    "game_over4": {
-        "description": "Game Over! You waited too long, and a creeper snuck up on you. Boom!",
-        "choices": {},
-        "image": pygame.image.load("images/gameover4.png")
-    },
-    "win": {
-        "description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds.\nYou won!",
-        "choices": {},
-        "image": pygame.image.load("images/win1.png")
-    }
+    "game_over1": {"description": "Game Over! The light came from lava and you fell before you realized. Great environmental awareness."},
+    "game_over2": {"description": "Game Over! You were ambushed by mobs. Take a torch next time."},
+    "game_over3": {"description": "Game Over! Your sword broke, and the mobs counter-attacked. Great job."},
+    "game_over4": {"description": "Game Over! You waited too long, and a creeper snuck up on you. Boom!"},
+    "win2": {"description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds. You won!"}
 }
 
 current_scene = "instructions"
 selected_choice = None
-show_play_again_button = False
-end_scene_start_time = 0
 
 def start_game():
     global current_scene
@@ -89,15 +75,34 @@ start_button.pack(pady=10)
 
 root.mainloop()
 
-running = True
+def draw_choices(choices, button_positions):
+    for choice_text, (next_scene, pos) in zip(choices.items(), button_positions):
+        choice_surface = font.render(choice_text, True, (255, 255, 255))
+        pygame.draw.circle(screen, (100, 100, 255), pos, 15, 2)
+        screen.blit(choice_surface, (pos[0] + 30, pos[1] - 10))
 
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if pygame.mouse.get_pressed()[0]:
+            if (mouse_x - pos[0]) ** 2 + (mouse_y - pos[1]) ** 2 < 15 ** 2:
+                global current_scene
+                current_scene = next_scene
+
+button_positions = {
+    "start": [(200, 400), (800, 400)],
+    "Dark_Cave2": [(540, 200), (540, 600)],
+    "Diamonds": [(400, 300), (700, 500), (540, 400)]
+}
+
+running = True
 while running:
     screen.fill((0, 0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            
+
+    screen.blit(images[current_scene], (0, 0))
+
     description_text = scenes[current_scene]["description"]
     y_offset = 50
     for line in description_text.split('\n'):
@@ -105,30 +110,8 @@ while running:
         screen.blit(rendered_text, (20, y_offset))
         y_offset += font.get_linesize()
 
-    if current_scene not in ["game_over1", "game_over2", "game_over4", "win"]:
-        y_offset = 300
-        for choice_text, next_scene in scenes[current_scene]["choices"].items():
-            pygame.draw.circle(screen, (100, 100, 255), (50, y_offset), 15, 2)
-            choice_surface = font.render(choice_text, True, (255, 255, 255))
-            screen.blit(choice_surface, (80, y_offset - 10))
-
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if pygame.mouse.get_pressed()[0]:
-                if (mouse_x - 50) ** 2 + (mouse_y - y_offset) ** 2 < 15 ** 2:
-                    current_scene = next_scene
-
-            y_offset += 50
-    
-    if current_scene in ["game_over1", "game_over2", "game_over3", "game_over4", "win"]:
-        play_again_rect = pygame.Rect(450, 650, 200, 50)
-        pygame.draw.rect(screen, (100, 255, 100), play_again_rect)
-        play_again_text = font.render("Play Again?", True, (0, 0, 0))
-        screen.blit(play_again_text, (465, 660))
-
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if play_again_rect.collidepoint(mouse_x, mouse_y):
-            if pygame.mouse.get_pressed()[0]:
-                current_scene = "start"
+    if "choices" in scenes[current_scene]:
+        draw_choices(scenes[current_scene]["choices"], button_positions.get(current_scene, []))
 
     pygame.display.flip()
 
