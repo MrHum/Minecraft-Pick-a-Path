@@ -41,7 +41,7 @@ scenes = {
         "image": None
     },
     "game_over1": {
-        "description": "Game Over! The light came from lava and you fell before you realized. Great environmental awareness.",
+        "description": "Game Over! The light came from lava and you fell before you realized.\n Great environmental awareness.",
         "choices": {},
         "image": None
     },
