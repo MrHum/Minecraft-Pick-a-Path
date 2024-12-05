@@ -61,7 +61,7 @@ scenes = {
         "image": None
     },
     "win": {
-        "description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds. You won!",
+        "description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds.\nYou won!",
         "choices": {},
         "image": None
     }
