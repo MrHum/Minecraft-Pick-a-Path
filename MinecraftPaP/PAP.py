@@ -13,7 +13,7 @@ scenes = {
     "instructions": {
         "description": "Welcome to Minecraft Pick-A-Path! Choose your path wisely. Each choice leads to a unique outcome. Survive and find the diamonds! Click 'Start Game' to begin.",
         "choices": {"Start Game": "start"},
-        "image": None
+        "image": pygame.image.load("images/intrduction.png")
     },
     "start": {
         "description": "You see a lit-up cave and a pitch-black cave. Where do you go?",
@@ -21,7 +21,7 @@ scenes = {
             "Go to the lit-up cave": "game_over1",
             "Go into the dark cave": "Dark_Cave2"
         },
-        "image": None
+        "image": pygame.image.load("images/choice1.png")
     },
     "Dark_Cave2": {
         "description": "You bravely go through the dark cave and find a light source. Now you find another dark cave above.",
@@ -29,7 +29,7 @@ scenes = {
             "Go up into another dark cave": "game_over2",
             "Continue regular path": "Diamonds"
         },
-        "image": None
+        "image": pygame.image.load("images/choice2.png")
     },
     "Diamonds": {
         "description": "You continued your path and found diamonds, but they are guarded by two skeletons and zombies. What will you do?",
@@ -38,32 +38,32 @@ scenes = {
             "Fight the mobs with an axe you remembered": "win",
             "Wait out the mobs": "game_over4"
         },
-        "image": None
+        "image": pygame.image.load("images/choice3.png")
     },
     "game_over1": {
         "description": "Game Over! The light came from lava and you fell before you realized.\n Great environmental awareness.",
         "choices": {},
-        "image": None
+        "image": pygame.image.load("images/gameover1.png")
     },
     "game_over2": {
         "description": "Game Over! You were ambushed by mobs. Take a torch next time.",
         "choices": {},
-        "image": None
+        "image": pygame.image.load("images/gameover2.png")
     },
     "game_over3": {
         "description": "Game Over! You forgot that the sword was badly damaged, it broke, and now the mobs counter-attack. Great job.",
         "choices": {},
-        "image": None
+        "image": pygame.image.load("images/gameover3.png")
     },
     "game_over4": {
         "description": "Game Over! You waited too long, and a creeper snuck up on you. Boom!",
         "choices": {},
-        "image": None
+        "image": pygame.image.load("images/gameover4.png")
     },
     "win": {
         "description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds.\nYou won!",
         "choices": {},
-        "image": None
+        "image": pygame.image.load("images/win1.png")
     }
 }
 
