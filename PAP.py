@@ -10,15 +10,15 @@ pygame.display.set_caption("Minecraft Pick-A-Path")
 font = pygame.font.Font(None, 36)
 
 images = {
-    "instructions": pygame.image.load("images/Introduction.png"),
-    "start": pygame.image.load("images/choice1.png"),
-    "game_over1": pygame.image.load("images/gameover1.png"),
-    "Dark_Cave2": pygame.image.load("images/choice2.png"),
-    "game_over2": pygame.image.load("images/gameover2.png"),
-    "Diamonds": pygame.image.load("images/choice3.png"),
-    "game_over3": pygame.image.load("images/gameover3.png"),
-    "game_over4": pygame.image.load("images/gameover4.png"),
-    "win2": pygame.image.load("images/win1.png")
+    "instructions": pygame.image.load("Images/Introduction.png"),
+    "start": pygame.image.load("Images/choice1.png"),
+    "game_over1": pygame.image.load("Images/gameover1.png"),
+    "Dark_Cave2": pygame.image.load("Images/choice2.png"),
+    "game_over2": pygame.image.load("Images/gameover2.png"),
+    "Diamonds": pygame.image.load("Images/choice3.png"),
+    "game_over3": pygame.image.load("Images/gameover3.png"),
+    "game_over4": pygame.image.load("Images/gameover4.png"),
+    "win2": pygame.image.load("Images/win1.png")
 }
 
 scenes = {
@@ -56,7 +56,6 @@ scenes = {
 }
 
 current_scene = "instructions"
-selected_choice = None
 
 def start_game():
     global current_scene
@@ -76,7 +75,7 @@ start_button.pack(pady=10)
 root.mainloop()
 
 def draw_choices(choices, button_positions):
-    for choice_text, (next_scene, pos) in zip(choices.items(), button_positions):
+    for (choice_text, next_scene), pos in zip(choices.items(), button_positions):
         choice_surface = font.render(choice_text, True, (255, 255, 255))
         pygame.draw.circle(screen, (100, 100, 255), pos, 15, 2)
         screen.blit(choice_surface, (pos[0] + 30, pos[1] - 10))
@@ -90,13 +89,11 @@ def draw_choices(choices, button_positions):
 button_positions = {
     "start": [(200, 400), (800, 400)],
     "Dark_Cave2": [(540, 200), (540, 600)],
-    "Diamonds": [(400, 300), (700, 500), (540, 400)]
+    "Diamonds": [(400, 300), (700, 500), (540, 400)] 
 }
 
 running = True
 while running:
-    screen.fill((0, 0, 0))
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
