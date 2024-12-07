@@ -1,33 +1,36 @@
-import pygame
-import sys
 import tkinter as tk
+from PIL import Image, ImageTk
+import os
+import pygame
 
-pygame.init()
+# Starts up pygame mixer for audio
+pygame.mixer.init()
 
-screen = pygame.display.set_mode((1080, 720))
-pygame.display.set_caption("Minecraft Pick-A-Path")
+# Paths
+base_path = os.path.dirname(os.path.abspath(__file__))
+images_path = os.path.join(base_path, "images")
+audio_path = os.path.join(base_path, "audio")
 
-font = pygame.font.Font(None, 36)
-
-images = {
-    "instructions": pygame.image.load("Images/Introduction.png"),
-    "start": pygame.image.load("Images/choice1.png"),
-    "game_over1": pygame.image.load("Images/gameover1.png"),
-    "Dark_Cave2": pygame.image.load("Images/choice2.png"),
-    "game_over2": pygame.image.load("Images/gameover2.png"),
-    "Diamonds": pygame.image.load("Images/choice3.png"),
-    "game_over3": pygame.image.load("Images/gameover3.png"),
-    "game_over4": pygame.image.load("Images/gameover4.png"),
-    "win2": pygame.image.load("Images/win1.png")
+# Audio files
+background_music = os.path.join(audio_path, "background_music.wav")  # Main background music that will play
+win_music = os.path.join(audio_path, "win_music.ogg")  # Music for the win scene
+game_over_sounds = {  # Sound files for the 4 game_over scenes
+    "game_over1": os.path.join(audio_path, "game_over1.ogg"),
+    "game_over2": os.path.join(audio_path, "game_over2.ogg"),
+    "game_over3": os.path.join(audio_path, "game_over3.ogg"),
+    "game_over4": os.path.join(audio_path, "game_over4.ogg"),
 }
 
+# Game scenes
 scenes = {
     "instructions": {
         "description": "Welcome to Minecraft Pick-A-Path! Choose your path wisely. Each choice leads to a unique outcome. Survive and find the diamonds! Click 'Start Game' to begin.",
+        "image": "Introduction.png",
         "choices": {"Start Game": "start"}
     },
     "start": {
         "description": "You see a lit-up cave and a pitch-black cave. Where do you go?",
+        "image": "choice1.png",
         "choices": {
             "Go to the lit-up cave": "game_over1",
             "Go into the dark cave": "Dark_Cave2"
@@ -35,6 +38,7 @@ scenes = {
     },
     "Dark_Cave2": {
         "description": "You bravely go through the dark cave and find a light source. Now you find another dark cave above.",
+        "image": "choice2.png",
         "choices": {
             "Go up into another dark cave": "game_over2",
             "Continue regular path": "Diamonds"
@@ -42,75 +46,107 @@ scenes = {
     },
     "Diamonds": {
         "description": "You continued your path and found diamonds, but they are guarded by two skeletons and zombies. What will you do?",
+        "image": "choice3.png",
         "choices": {
             "Fight the mobs with a damaged sword": "game_over3",
-            "Fight the mobs with an axe you remembered": "win2",
+            "Fight the mobs with an axe on the floor": "win2",
             "Wait for the mobs to disappear": "game_over4"
         }
     },
-    "game_over1": {"description": "Game Over! The light came from lava and you fell before you realized. Great environmental awareness."},
-    "game_over2": {"description": "Game Over! You were ambushed by mobs. Take a torch next time."},
-    "game_over3": {"description": "Game Over! Your sword broke, and the mobs counter-attacked. Great job."},
-    "game_over4": {"description": "Game Over! You waited too long, and a creeper snuck up on you. Boom!"},
-    "win2": {"description": "Congratulations! You pulled out your axe, defeated the mobs, and mined the diamonds. You won!"}
+    "game_over1": {"description": "Game Over! The light came from lava and you fell before you realized.", "image": "gameover1.png"},
+    "game_over2": {"description": "Game Over! You were ambushed by mobs. Be more careful next time.", "image": "gameover2.png"},
+    "game_over3": {"description": "Game Over! Your sword broke mid-fight. The mobs counter-attacked.", "image": "gameover3.png"},
+    "game_over4": {"description": "Game Over! A creeper snuck up on you. Boom!", "image": "gameover4.png"},
+    "win2": {"description": "Congratulations! You defeated the mobs and mined the diamonds. You won!", "image": "win1.png"}
 }
 
-current_scene = "instructions"
+# Audio control functions
+def play_music(file_path, loop=-1):
+    pygame.mixer.music.load(file_path)
+    pygame.mixer.music.play(loop)
 
-def start_game():
-    global current_scene
-    current_scene = "start"
-    root.quit()
+# Stops whatever song is currently playing to start another
+def stop_music():
+    pygame.mixer.music.stop()
 
-root = tk.Tk()
-root.title("Minecraft Pick-A-Path")
-root.geometry("300x200")
+# One time death sounds for the game_over scenes
+def play_sound(file_path):
+    sound = pygame.mixer.Sound(file_path)
+    sound.play()
 
-intro_label = tk.Label(root, text=scenes["instructions"]["description"], wraplength=280, font=("Helvetica", 12))
-intro_label.pack(pady=20)
+# Audio management for scene transitions
+def handle_scene_change(scene):
+    """Manage audio transitions based on scene."""
+    if scene == "instructions":
+        play_music(background_music)  # Starts background music
+    elif scene in game_over_sounds:
+        stop_music()  # Stops any ongoing music
+        play_sound(game_over_sounds[scene])  # Plays game-over sound
+    elif scene == "win2":
+        stop_music()  # Stops background music
+        play_music(win_music)  # Plays win music
+    elif scene == "instructions":  # Reset to instructions
+        stop_music()
+        play_music(background_music)  # Restarts background music
 
-start_button = tk.Button(root, text="Start Game", command=start_game)
-start_button.pack(pady=10)
+# Main Tkinter app
+class PickAPathGame:
+    def __init__(self, briar):
+        self.briar = briar
+        self.briar.title("Minecraft Pick-A-Path")
+        self.briar.geometry("1080x720")
+        self.current_scene = "instructions"
+        
+        # Widgets
+        self.image_label = tk.Label(self.briar)
+        self.image_label.pack()
+        self.description_label = tk.Label(self.briar, wraplength=1000, font=("Helvetica", 16))
+        self.description_label.pack(pady=10)
+        self.button_frame = tk.Frame(self.briar)
+        self.button_frame.pack()
 
-root.mainloop()
+        self.load_scene()
 
-def draw_choices(choices, button_positions):
-    for (choice_text, next_scene), pos in zip(choices.items(), button_positions):
-        choice_surface = font.render(choice_text, True, (255, 255, 255))
-        pygame.draw.circle(screen, (100, 100, 255), pos, 15, 2)
-        screen.blit(choice_surface, (pos[0] + 30, pos[1] - 10))
+    def load_scene(self):
+        scene = scenes[self.current_scene]
 
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if pygame.mouse.get_pressed()[0]:
-            if (mouse_x - pos[0]) ** 2 + (mouse_y - pos[1]) ** 2 < 15 ** 2:
-                global current_scene
-                current_scene = next_scene
+        # Updates audio based on the scene
+        handle_scene_change(self.current_scene)
 
-button_positions = {
-    "start": [(200, 400), (800, 400)],
-    "Dark_Cave2": [(540, 200), (540, 600)],
-    "Diamonds": [(400, 300), (700, 500), (540, 400)] 
-}
+        # Loads and displays the images for each scene
+        if "image" in scene:
+            image_path = os.path.join(images_path, scene["image"])
+            image = Image.open(image_path).resize((1080, 500), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(image)
+            self.image_label.config(image=photo)
+            self.image_label.image = photo
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+        # Updates the description in each scene
+        self.description_label.config(text=scene["description"])
 
-    screen.blit(images[current_scene], (0, 0))
+        # Updates buttons in each scene
+        for widget in self.button_frame.winfo_children():
+            widget.destroy()
 
-    description_text = scenes[current_scene]["description"]
-    y_offset = 50
-    for line in description_text.split('\n'):
-        rendered_text = font.render(line, True, (255, 255, 255))
-        screen.blit(rendered_text, (20, y_offset))
-        y_offset += font.get_linesize()
+        if "choices" in scene:
+            for choice_text, next_scene in scene["choices"].items():
+                button = tk.Button(self.button_frame, text=choice_text, command=lambda n=next_scene: self.change_scene(n), font=("Helvetica", 14))
+                button.pack(pady=5)
+        else:
+            # Game Over or Win screen will show a try again button
+            restart_button = tk.Button(self.button_frame, text="Try Again", command=self.reset_game, font=("Helvetica", 14))
+            restart_button.pack(pady=20)
 
-    if "choices" in scenes[current_scene]:
-        draw_choices(scenes[current_scene]["choices"], button_positions.get(current_scene, []))
+    def change_scene(self, next_scene):
+        self.current_scene = next_scene
+        self.load_scene()
 
-    pygame.display.flip()
+    def reset_game(self):
+        self.current_scene = "instructions"
+        self.load_scene()
 
-pygame.quit()
-sys.exit()
+# Main program
+if __name__ == "__main__":
+    briar = tk.Tk()
+    app = PickAPathGame(briar)
+    briar.mainloop()
