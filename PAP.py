@@ -3,25 +3,21 @@ from PIL import Image, ImageTk
 import os
 import pygame
 
-# Starts up pygame mixer for audio
 pygame.mixer.init()
 
-# Paths
 base_path = os.path.dirname(os.path.abspath(__file__))
 images_path = os.path.join(base_path, "images")
 audio_path = os.path.join(base_path, "audio")
 
-# Audio files
-background_music = os.path.join(audio_path, "background_music.wav")  # Main background music that will play
-win_music = os.path.join(audio_path, "win_music.ogg")  # Music for the win scene
-game_over_sounds = {  # Sound files for the 4 game_over scenes
+background_music = os.path.join(audio_path, "background_music.wav")
+win_music = os.path.join(audio_path, "win_music.ogg") 
+game_over_sounds = {
     "game_over1": os.path.join(audio_path, "game_over1.ogg"),
     "game_over2": os.path.join(audio_path, "game_over2.ogg"),
     "game_over3": os.path.join(audio_path, "game_over3.ogg"),
     "game_over4": os.path.join(audio_path, "game_over4.ogg"),
 }
 
-# Game scenes
 scenes = {
     "instructions": {
         "description": "Welcome to Minecraft Pick-A-Path! Choose your path wisely. Each choice leads to a unique outcome. Survive and find the diamonds! Click 'Start Game' to begin.",
@@ -60,36 +56,31 @@ scenes = {
     "win2": {"description": "Congratulations! You defeated the mobs and mined the diamonds. You won!", "image": "win1.png"}
 }
 
-# Audio control functions
 def play_music(file_path, loop=-1):
     pygame.mixer.music.load(file_path)
     pygame.mixer.music.play(loop)
 
-# Stops whatever song is currently playing to start another
 def stop_music():
     pygame.mixer.music.stop()
 
-# One time death sounds for the game_over scenes
 def play_sound(file_path):
     sound = pygame.mixer.Sound(file_path)
     sound.play()
 
-# Audio management for scene transitions
 def handle_scene_change(scene):
     """Manage audio transitions based on scene."""
     if scene == "instructions":
-        play_music(background_music)  # Starts background music
+        play_music(background_music)
     elif scene in game_over_sounds:
-        stop_music()  # Stops any ongoing music
-        play_sound(game_over_sounds[scene])  # Plays game-over sound
-    elif scene == "win2":
-        stop_music()  # Stops background music
-        play_music(win_music)  # Plays win music
-    elif scene == "instructions":  # Reset to instructions
         stop_music()
-        play_music(background_music)  # Restarts background music
+        play_sound(game_over_sounds[scene])
+    elif scene == "win2":
+        stop_music()
+        play_music(win_music)
+    elif scene == "instructions":
+        stop_music()
+        play_music(background_music)
 
-# Main Tkinter app
 class PickAPathGame:
     def __init__(self, briar):
         self.briar = briar
@@ -97,7 +88,6 @@ class PickAPathGame:
         self.briar.geometry("1080x720")
         self.current_scene = "instructions"
         
-        # Widgets
         self.image_label = tk.Label(self.briar)
         self.image_label.pack()
         self.description_label = tk.Label(self.briar, wraplength=1000, font=("Helvetica", 16))
@@ -110,10 +100,8 @@ class PickAPathGame:
     def load_scene(self):
         scene = scenes[self.current_scene]
 
-        # Updates audio based on the scene
         handle_scene_change(self.current_scene)
 
-        # Loads and displays the images for each scene
         if "image" in scene:
             image_path = os.path.join(images_path, scene["image"])
             image = Image.open(image_path).resize((1080, 500), Image.Resampling.LANCZOS)
@@ -121,10 +109,8 @@ class PickAPathGame:
             self.image_label.config(image=photo)
             self.image_label.image = photo
 
-        # Updates the description in each scene
         self.description_label.config(text=scene["description"])
 
-        # Updates buttons in each scene
         for widget in self.button_frame.winfo_children():
             widget.destroy()
 
@@ -133,7 +119,6 @@ class PickAPathGame:
                 button = tk.Button(self.button_frame, text=choice_text, command=lambda n=next_scene: self.change_scene(n), font=("Helvetica", 14))
                 button.pack(pady=5)
         else:
-            # Game Over or Win screen will show a try again button
             restart_button = tk.Button(self.button_frame, text="Try Again", command=self.reset_game, font=("Helvetica", 14))
             restart_button.pack(pady=20)
 
@@ -145,7 +130,6 @@ class PickAPathGame:
         self.current_scene = "instructions"
         self.load_scene()
 
-# Main program
 if __name__ == "__main__":
     briar = tk.Tk()
     app = PickAPathGame(briar)
